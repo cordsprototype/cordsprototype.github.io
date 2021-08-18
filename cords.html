@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cords</title>
+  <link rel="shortcut icon" href="data:,">
+  <style>
+* {
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+body {
+  background: linen;
+}
+svg {
+  width: 20rem;
+}
+circle {
+  cursor: pointer;
+  transition: stroke-width 0.1s ease;
+  stroke-width: 0;
+}
+circle:hover {
+  stroke-width: 9;
+}
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-16.5 -16.5 93 117">
+    <rect x="-16" y="-16" width="92" height="116" rx="4" fill="white" stroke="black" stroke-width="1"/>
+    <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
+    <g paint-order="stroke" stroke-opacity="0.25">
+      <circle cx="0" cy="0" r="8" fill="red" stroke="red"/>
+      <circle cx="0" cy="21" r="8" fill="orange" stroke="orange"/>
+      <circle cx="0" cy="42" r="8" fill="yellow" stroke="yellow"/>
+      <circle cx="0" cy="63" r="8" fill="lime" stroke="lime"/>
+      <circle cx="0" cy="84" r="8" fill="blue" stroke="blue"/>
+      <circle cx="60" cy="0" r="8" fill="red" stroke="red"/>
+      <circle cx="60" cy="21" r="8" fill="orange" stroke="orange"/>
+      <circle cx="60" cy="42" r="8" fill="yellow" stroke="yellow"/>
+      <circle cx="60" cy="63" r="8" fill="lime" stroke="lime"/>
+      <circle cx="60" cy="84" r="8" fill="blue" stroke="blue"/>
+    </g>
+  </svg>
+  <script type="module">
+Array.prototype.spliceIndex = function(f, ...p) {
+  const i = this.findIndex(f);
+  if (i !== -1) {
+    return this.splice(i, ...p);
+  }
+  this.push(...p.slice(1));
+  return [];
+};
+
+const svg = document.querySelector('svg');
+const circles = [...svg.querySelectorAll('circle')];
+const paths = [];
+
+function drawPaths() {
+  svg.querySelectorAll('path').forEach(p => p.parentNode.removeChild(p));
+  paths.forEach(p => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${p.start.cx.baseVal.value},${p.start.cy.baseVal.value}L${p.active?.x ?? p.end.cx.baseVal.value},${p.active?.y ?? p.end.cy.baseVal.value}`);
+    if (p.clash) {
+      path.style.stroke = 'red';
+    }
+    svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
+  });
+}
+
+circles.forEach(circle => {
+  let mousemove;
+  let point = svg.createSVGPoint();
+  circle.addEventListener('mousedown', e => {
+    point.x = e.clientX;
+    point.y = e.clientY;
+    point = point.matrixTransform(svg.getScreenCTM().inverse());
+    paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+    paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+    paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+    drawPaths();
+    circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
+    mousemove = e => {
+      point.x = e.clientX;
+      point.y = e.clientY;
+      point = point.matrixTransform(svg.getScreenCTM().inverse());
+      paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+      drawPaths();
+    };
+    svg.addEventListener('mousemove', mousemove);
+    const mouseup = e => {
+      const end = e.target.closest?.('circle');
+      if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
+        paths.filter(p => p.start === end || p.end === end).forEach(p => p.clash = true);
+        paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+        paths.spliceIndex(p => p.active, 1, { start: circle, end });
+      } else {
+        paths.spliceIndex(p => p.active, 1);
+      }
+      drawPaths();
+      circles.forEach(c => c.style.pointerEvents = '');
+      svg.removeEventListener('mousemove', mousemove);
+      document.removeEventListener('mouseup', mouseup);
+      window.removeEventListener('mouseleave', mouseup);
+    };
+    document.addEventListener('mouseup', mouseup);
+    window.addEventListener('mouseleave', mouseup);
+  });
+  circle.addEventListener('mouseenter', e => {
+    paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+    drawPaths();
+  });
+  circle.addEventListener('mouseleave', e => {
+    paths.forEach(p => delete p.clash);
+    drawPaths();
+  });
+
+  // let touchmove;
+  // circle.addEventListener('touchstart', e => {
+  //   point.x = e.touches[0].clientX;
+  //   point.y = e.touches[0].clientY;
+  //   point = point.matrixTransform(svg.getScreenCTM().inverse());
+  //   paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+  //   paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+  //   drawPaths();
+  //   circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
+  //   touchmove = e => {
+  //     e.preventDefault();
+  //     point.x = (e.touches[0].clientX - diffX);
+  //     point.y = (e.touches[0].clientY - diffY);
+  //     point = point.matrixTransform(svg.getScreenCTM().inverse());
+  //     paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+  //     drawPaths();
+  //   };
+  //   svg.addEventListener('touchmove', touchmove);
+  //   const touchend = e => {
+  //     const end = e.target.closest?.('circle');
+  //     if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
+  //       paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+  //       paths.spliceIndex(p => p.active, 1, { start: circle, end });
+  //     } else {
+  //       paths.spliceIndex(p => p.active, 1);
+  //     }
+  //     drawPaths();
+  //     circles.forEach(c => c.style.pointerEvents = '');
+  //     svg.removeEventListener('touchmove', touchmove);
+  //     document.removeEventListener('touchend', touchend);
+  //     window.removeEventListener('touchcancel', touchend);
+  //   };
+  //   document.addEventListener('touchend', touchend);
+  //   window.addEventListener('touchcancel', touchend);
+  // });
+});
+  </script>
+</body>
+</html>
