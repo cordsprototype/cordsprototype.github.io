@@ -121,22 +121,24 @@ circles.forEach(circle => {
     point.x = e.touches[0].clientX;
     point.y = e.touches[0].clientY;
     point = point.matrixTransform(svg.getScreenCTM().inverse());
+    paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
     paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
     paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
     drawPaths();
     circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
     touchmove = e => {
       e.preventDefault();
-      point.x = (e.touches[0].clientX - diffX);
-      point.y = (e.touches[0].clientY - diffY);
+      point.x = e.touches[0].clientX;
+      point.y = e.touches[0].clientY;
       point = point.matrixTransform(svg.getScreenCTM().inverse());
       paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
       drawPaths();
     };
     svg.addEventListener('touchmove', touchmove);
     const touchend = e => {
-      const end = e.target.closest?.('circle');
+      const end = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('circle');
       if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
+        paths.filter(p => p.start === end || p.end === end).forEach(p => p.clash = true);
         paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
         paths.spliceIndex(p => p.active, 1, { start: circle, end });
       } else {
@@ -151,6 +153,15 @@ circles.forEach(circle => {
     document.addEventListener('touchend', touchend);
     window.addEventListener('touchcancel', touchend);
   });
+});
+
+document.addEventListener('touchmove', e => {
+  paths.forEach(p => delete p.clash);
+  const circle = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('circle');
+  if (circle) {
+    paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+  }
+  drawPaths();
 });
   </script>
 </body>
