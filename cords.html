@@ -147,6 +147,7 @@ circles.forEach(circle => {
       drawPaths();
       circles.forEach(c => c.style.pointerEvents = '');
       svg.removeEventListener('touchmove', touchmove);
+      svg.blur();
       document.removeEventListener('touchend', touchend);
       window.removeEventListener('touchcancel', touchend);
     };
