@@ -21,8 +21,10 @@ circle {
   transition: stroke-width 0.1s ease;
   stroke-width: 0;
 }
-circle:hover {
-  stroke-width: 9;
+@media (pointer: fine) {
+  circle:hover {
+    stroke-width: 9;
+  }
 }
   </style>
 </head>
@@ -147,7 +149,6 @@ circles.forEach(circle => {
       drawPaths();
       circles.forEach(c => c.style.pointerEvents = '');
       svg.removeEventListener('touchmove', touchmove);
-      svg.blur();
       document.removeEventListener('touchend', touchend);
       window.removeEventListener('touchcancel', touchend);
     };
