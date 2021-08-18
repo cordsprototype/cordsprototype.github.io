@@ -116,41 +116,41 @@ circles.forEach(circle => {
     drawPaths();
   });
 
-  // let touchmove;
-  // circle.addEventListener('touchstart', e => {
-  //   point.x = e.touches[0].clientX;
-  //   point.y = e.touches[0].clientY;
-  //   point = point.matrixTransform(svg.getScreenCTM().inverse());
-  //   paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
-  //   paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
-  //   drawPaths();
-  //   circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
-  //   touchmove = e => {
-  //     e.preventDefault();
-  //     point.x = (e.touches[0].clientX - diffX);
-  //     point.y = (e.touches[0].clientY - diffY);
-  //     point = point.matrixTransform(svg.getScreenCTM().inverse());
-  //     paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
-  //     drawPaths();
-  //   };
-  //   svg.addEventListener('touchmove', touchmove);
-  //   const touchend = e => {
-  //     const end = e.target.closest?.('circle');
-  //     if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
-  //       paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
-  //       paths.spliceIndex(p => p.active, 1, { start: circle, end });
-  //     } else {
-  //       paths.spliceIndex(p => p.active, 1);
-  //     }
-  //     drawPaths();
-  //     circles.forEach(c => c.style.pointerEvents = '');
-  //     svg.removeEventListener('touchmove', touchmove);
-  //     document.removeEventListener('touchend', touchend);
-  //     window.removeEventListener('touchcancel', touchend);
-  //   };
-  //   document.addEventListener('touchend', touchend);
-  //   window.addEventListener('touchcancel', touchend);
-  // });
+  let touchmove;
+  circle.addEventListener('touchstart', e => {
+    point.x = e.touches[0].clientX;
+    point.y = e.touches[0].clientY;
+    point = point.matrixTransform(svg.getScreenCTM().inverse());
+    paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+    paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+    drawPaths();
+    circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
+    touchmove = e => {
+      e.preventDefault();
+      point.x = (e.touches[0].clientX - diffX);
+      point.y = (e.touches[0].clientY - diffY);
+      point = point.matrixTransform(svg.getScreenCTM().inverse());
+      paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+      drawPaths();
+    };
+    svg.addEventListener('touchmove', touchmove);
+    const touchend = e => {
+      const end = e.target.closest?.('circle');
+      if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
+        paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+        paths.spliceIndex(p => p.active, 1, { start: circle, end });
+      } else {
+        paths.spliceIndex(p => p.active, 1);
+      }
+      drawPaths();
+      circles.forEach(c => c.style.pointerEvents = '');
+      svg.removeEventListener('touchmove', touchmove);
+      document.removeEventListener('touchend', touchend);
+      window.removeEventListener('touchcancel', touchend);
+    };
+    document.addEventListener('touchend', touchend);
+    window.addEventListener('touchcancel', touchend);
+  });
 });
   </script>
 </body>
