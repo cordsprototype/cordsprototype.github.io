@@ -4,8 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Cords</title>
-  <link rel="shortcut icon" href="tomato.svg"/>
+  <link rel="shortcut icon" href="data:,"/>
   <style>
+@font-face {
+  font-family: comici;
+  font-style: italic;
+  src: url(comici.ttf);
+}
 * {
   box-sizing: border-box;
   font-family: sans-serif;
@@ -36,6 +41,7 @@ body {
 #room-form input {
   appearance: none;
   border: none;
+  border-radius: 0;
   display: block;
   width: 100%;
   height: 2rem;
@@ -124,12 +130,12 @@ main fieldset {
   display: flex;
   flex-direction: column;
   border: 1px solid black;
-  font: italic 1rem cursive;
+  font: italic 1rem comici, cursive;
   margin: -0.5rem 0 0;
   padding: 0.5rem 1rem 1rem;
 }
 main legend {
-  font: italic 1rem cursive;
+  font: italic 1rem comici, cursive;
   padding: 0 0.5rem;
 }
 main input {
@@ -138,13 +144,13 @@ main input {
   background: none;
   border-bottom: 1px solid black;
   margin-bottom: 0.5rem;
-  font: italic 1rem cursive;
+  font: italic 1rem comici, cursive;
   width: 10rem;
   max-width: calc(100vw - 9rem);
 }
 main fieldset p {
   margin: 0.25rem 0;
-  font: italic 1rem cursive;
+  font: italic 1rem comici, cursive;
   color: black;
   width: 10rem;
   max-width: calc(100vw - 9rem);
