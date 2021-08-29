@@ -196,6 +196,14 @@ table th, table td {
   border-radius: 0.5rem;
   padding: 0.5rem;
   background: #ccc;
+  text-align: center;
+}
+td:first-child, td:last-child {
+  font-weight: bold;
+}
+.overflow {
+  overflow: auto;
+  max-width: calc(100vw - 3rem);
 }
   </style>
 </head>
@@ -316,30 +324,32 @@ document.getElementById('room-form').addEventListener('submit', async e => {
     }[data.action] || (() => {}))();
     const completedPlayers = Object.values(connections).filter(c => c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => b.ready - a.ready);
     document.querySelector('aside').innerHTML = `<p>Room Code: ${player.room}</p>
-    <table>
-      <thead>
-        <tr><th>Player</th><th>Status</th>${completedPlayers.map(c => (
-          `<th>${c.name}</th>`
-        )).join('')}<th>Total Score</th></tr>
-      </thead>
-      <tbody>${
-        Object.values(connections).map(c => (
-          `<tr>
-            <td>${c.name}${c.name === player.name ? ' (Me)' : ''}</td>
-            <td>${c.ready ? (
-              Object.values(connections).some(cc => cc.loaded) ? (
-                (c.loaded && completedPlayers.length !== Object.keys(connections).length) ? 'Waiting' : (
-                  (c.guessed?.length > completedPlayers.length) || (completedPlayers.length === Object.keys(connections).length) ? 'Finished' : 'Answering'
-                )
-              ) : 'Ready'
-            ) : 'Writing clues'}</td>
-            ${completedPlayers.map(cc => `<td>${cc.guesses[c.name].score}</td>`).join('')}
-            <td>${c.score || 0}</td>
-          </tr>`
-        )).join('')
-      }
-      </tbody>
-    </table>`;
+    <div class="overflow">
+      <table>
+        <thead>
+          <tr><th>Player</th><th>Status</th>${completedPlayers.map(c => (
+            `<th>${c.name}</th>`
+          )).join('')}<th>Total Score</th></tr>
+        </thead>
+        <tbody>${
+          Object.values(connections).map(c => (
+            `<tr>
+              <td>${c.name}${c.name === player.name ? ' (Me)' : ''}</td>
+              <td>${c.ready ? (
+                Object.values(connections).some(cc => cc.loaded) ? (
+                  (c.loaded && completedPlayers.length !== Object.keys(connections).length) ? 'Waiting' : (
+                    (c.guessed?.length > completedPlayers.length) || (completedPlayers.length === Object.keys(connections).length) ? 'Finished' : 'Answering'
+                  )
+                ) : 'Ready'
+              ) : 'Writing clues'}</td>
+              ${completedPlayers.map(cc => `<td>${cc.guesses[c.name].score}</td>`).join('')}
+              <td>${c.score || 0}</td>
+            </tr>`
+          )).join('')
+        }
+        </tbody>
+      </table>
+    </div>`;
   });
   socket.addEventListener('open', () => {
     socket.send(JSON.stringify({ action: 'connect', name: player.name, uuid }));
