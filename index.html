@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Cords</title>
+  <link rel="shortcut icon" href="tomato.svg"/>
+  <style>
+* {
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+body {
+  margin: 0;
+  background-color: dodgerblue;
+}
+#room-form {
+  width: 32rem;
+  max-width: 100%;
+  margin: auto;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+}
+#room-form img {
+  width: 16rem;
+  max-width: 100%;
+  margin: auto;
+}
+#room-form label {
+  display: block;
+  margin: 2rem 0 0.25rem;
+  color: white;
+  font: bold 1.2rem sans-serif;
+}
+#room-form input {
+  appearance: none;
+  border: none;
+  display: block;
+  width: 100%;
+  height: 2rem;
+  font: bold 1.2rem sans-serif;
+}
+button {
+  appearance: none;
+  border: 0.25rem solid maroon;
+  border-top: 0;
+  border-left: 0;
+  width: 20rem;
+  max-width: 100%;
+  height: 3rem;
+  display: block;
+  margin: 2.5rem auto;
+  border-radius: 0.5rem;
+  background-color: firebrick;
+  color: white;
+  font: bold 1.5rem sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+button:active {
+  transform: translate(0.0625rem, 0.0625rem);
+  border-width: 0.125rem;
+}
+#room-form p {
+  margin: 3rem auto;
+  color: white;
+  font-weight: bold;
+}
+#room-form .error {
+  margin: 0.25rem 0;
+  color: firebrick;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+section {
+  width: 50rem;
+  max-width: 100%;
+  margin: auto;
+  padding: 2rem;
+}
+main p {
+  width: 40rem;
+  max-width: 100%;
+  margin: 0 auto 2rem;
+  color: white;
+  font: bold 1.2rem sans-serif;
+  text-align: center;
+}
+main .group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  margin: -1rem;
+}
+main .fwrap {
+  background: #faf0e6;
+  padding: 1rem;
+  margin: 1rem;
+  box-shadow: 0.5rem 0.5rem #4f477f;
+}
+main svg {
+  width: 26rem;
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100vh - 1rem);
+  margin: 1rem;
+}
+main svg.interactive circle {
+  cursor: pointer;
+  transition: stroke-width 0.1s ease;
+  stroke-width: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  main svg.interactive circle:hover {
+    stroke-width: 9;
+  }
+}
+main fieldset {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+  font: italic 1rem cursive;
+  margin: -0.5rem 0 0;
+  padding: 0.5rem 1rem 1rem;
+}
+main legend {
+  font: italic 1rem cursive;
+  padding: 0 0.5rem;
+}
+main input {
+  appearance: none;
+  border: none;
+  background: none;
+  border-bottom: 1px solid black;
+  margin-bottom: 0.5rem;
+  font: italic 1rem cursive;
+  width: 10rem;
+  max-width: calc(100vw - 9rem);
+}
+main fieldset p {
+  margin: 0.25rem 0;
+  font: italic 1rem cursive;
+  color: black;
+  width: 10rem;
+  max-width: calc(100vw - 9rem);
+  margin: 0 0 0.5rem;
+  border-bottom: 1px solid #ccc;
+  text-align: start;
+}
+
+aside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+aside p {
+  font: bold 1.5rem sans-serif;
+  color: white;
+  margin: 0.25rem 0;
+}
+table {
+  border-spacing: 0.5rem;
+  border-radius: 1rem;
+  background: dimgrey;
+}
+table th, table td {
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background: #ccc;
+}
+  </style>
+</head>
+<body>
+  <form id="room-form">
+    <img src="logo.svg"/>
+    <label for="room">Room Code</label>
+    <input id="room" style="text-transform:uppercase">
+    <label for="name">Name</label>
+    <input id="name">
+    <p class="hidden error">That name has already been taken. Please try another.</p>
+    <button type="submit">Play</button>
+    <p id="connecting" class="hidden">Connecting ...</p>
+  </form>
+  <section class="hidden">
+    <main></main>
+    <aside></aside>
+  </section>
+  <script>
+const uuid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+const connections = {};
+const player = {};
+
+document.getElementById('room').value = Math.random().toString(36).slice(2,8).toUpperCase().padStart(6,0);
+document.getElementById('name').value = 'Anonymous' + ['Kakapo', 'Kea', 'Kereru', 'Pukeko', 'Takahe', 'Tui', 'Weka'][Math.random()*7|0];
+
+document.getElementById('room-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  document.querySelector('#room-form button').classList.add('hidden');
+  document.getElementById('connecting').classList.remove('hidden');
+  player.room = document.getElementById('room').value.toUpperCase();
+  player.name = document.getElementById('name').value;
+  connections[player.name] = player;
+  const socket = new WebSocket(`wss://echowebsocket.herokuapp.com/${player.room}`);
+  let timeout;
+  socket.addEventListener('message', e => {
+    const data = JSON.parse(e.data);
+    // console.log(data, connections);
+    ({
+      connect() {
+        if (data.uuid !== uuid) {
+          if (data.name === player.name) {
+            socket.send(JSON.stringify({ action: 'clash', name: player.name, uuid }));
+          } else {
+            socket.send(JSON.stringify({ action: 'reply', name: player.name,
+            // Also send other data if present so that a late connector can store it:
+            ready: player.ready, clues: player.clues, cards: player.cards, guesses: player.guesses, cord: player.guesses && player.cord || undefined, guessed: player.guessed }));
+            connections[data.name] ||= { name: data.name };
+          }
+        }
+      },
+      reply() {
+        connections[data.name] ||= { name: data.name };
+        connections[data.name].clues ||= data.clues;
+        connections[data.name].cards ||= data.cards;
+        connections[data.name].ready ||= data.ready;
+        connections[data.name].guesses ||= data.guesses;
+        connections[data.name].cord ||= data.cord;
+        connections[data.name].guessed ||= data.guessed;
+      },
+      clash() {
+        if (data.uuid !== uuid && data.name === player.name) {
+          window.clearTimeout(timeout);
+          delete connections[data.name];
+          document.querySelector('section').classList.add('hidden');
+          document.getElementById('room-form').classList.remove('hidden');
+          document.querySelector('#room-form .error').classList.remove('hidden');
+          document.querySelector('#room-form button').classList.remove('hidden');
+          document.getElementById('connecting').classList.add('hidden');
+        }
+      },
+      leave() {
+        delete connections[data.name];
+      },
+      ready() {
+        connections[data.name].ready = data.ready;
+        connections[data.name].clues = data.clues;
+        connections[data.name].cards = data.cards;
+        if (Object.keys(connections).length > 1 && Object.values(connections).every(c => c.ready)) {
+          const first = Object.values(connections).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => a.ready - b.ready)[0];
+          loadConnection(socket, first.name);
+        }
+      },
+      load() {
+        loadConnection(socket, data.name);
+      },
+      guess() {
+        connections[data.name].guessed ||= [];
+        connections[data.name].guessed.push(data.player);
+        if (data.player === player.name) {
+          connections[data.name].guess = data.guess;
+          if (Object.values(connections).every(c => c.guess || c.name === player.name)) {
+            socket.send(JSON.stringify({ action: 'answers', name: player.name, cord: player.cord, guesses: (
+              Object.fromEntries(Object.values(connections).map(c => [c.name, { guess: c.guess, score: (
+                c.name === player.name ? (
+                  Object.values(connections).reduce((acc, cc) => acc + cc.guess?.reduce((accc, g, i) => accc + (g === player.cord[i]), 0) || 0, 0)
+                ) : c.guess?.reduce((acc, g, i) => acc + 2 * (g === player.cord[i]), 0) || 0
+              ) }]))
+            ) }));
+          }
+        }
+      },
+      answers() {
+        connections[data.name].cord = data.cord;
+        connections[data.name].guesses = data.guesses;
+        Object.entries(data.guesses).forEach(([k, v]) => {
+          connections[k].score = (connections[k].score || 0) + v.score
+        });
+        if (Object.values(connections).every(c => c.guesses)) {
+          loadConnection(socket, false, data.name);
+        } else {
+          const next = Object.values(connections).filter(c => !c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => a.ready - b.ready)[0];
+          loadConnection(socket, next.name, data.name);
+        }
+      }
+    }[data.action] || (() => {}))();
+    const completedPlayers = Object.values(connections).filter(c => c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => a.ready - b.ready);
+    document.querySelector('aside').innerHTML = `<p>Room Code: ${player.room}</p>
+    <table>
+      <thead>
+        <tr><th>Player</th><th>Status</th>${completedPlayers.map(c => (
+          `<th>${c.name}</th>`
+        )).join('')}<th>Total Score</th></tr>
+      </thead>
+      <tbody>${
+        Object.values(connections).map(c => (
+          `<tr>
+            <td>${c.name}${c.name === player.name ? ' (Me)' : ''}</td>
+            <td>${c.ready ? (
+              Object.values(connections).some(cc => cc.loaded) ? (
+                (c.loaded && completedPlayers.length !== Object.keys(connections).length) ? 'Waiting' : (
+                  (c.guessed?.length > completedPlayers.length) || (completedPlayers.length === Object.keys(connections).length) ? 'Finished' : 'Answering'
+                )
+              ) : 'Ready'
+            ) : 'Writing clues'}</td>
+            ${completedPlayers.map(cc => `<td>${cc.guesses[c.name].score}</td>`).join('')}
+            <td>${c.score || 0}</td>
+          </tr>`
+        )).join('')
+      }
+      </tbody>
+    </table>`;
+  });
+  socket.addEventListener('open', () => {
+    socket.send(JSON.stringify({ action: 'connect', name: player.name, uuid }));
+    timeout = window.setTimeout(() => {
+      document.getElementById('room-form').classList.add('hidden');
+      document.querySelector('section').classList.remove('hidden');
+      setupGame(socket);
+    }, 1500);
+  });
+  window.addEventListener('beforeunload', () => {
+    socket.send(JSON.stringify({ action: 'leave', name: player.name }));
+    socket.close();
+  });
+  document.getElementById('name').addEventListener('input', () => document.querySelector('#room-form .error').classList.add('hidden'));
+});
+
+const cards = {
+  "Countries": ["India","Canada","Brazil","Australia","Russia"],
+  "Countries II": ["China","USA","Argentina","Algeria","Kazakhstan"],
+  "Fruit": ["Banana","Pineapple","Avocado","Blueberry","Apple"],
+  "Fruit II": ["Mango","Watermelon","Strawberry","Lemon","Orange"],
+  "Vegetables": ["Tomato","Onion","Carrot","Lettuce","Corn"],
+  "Vegetables II": ["Potato","Broccoli","Pepper","Cucumber","Mushroom"],
+  "Animals": ["Bear","Shark","Snake","Pig","Lion"],
+  "Animals II": ["Deer","Dolphin","Monkey","Spider","Wolf"],
+  "Pets": ["Dog","Cat","Horse","Bird","Fish"],
+  "Metals": ["Gold","Silver","Bronze","Iron","Tin"],
+  "Gems": ["Diamond","Ruby","Pearl","Jade","Sapphire"],
+  "Jewelry": ["Necklace","Watch","Glasses","Ring","Earring"],
+  "Clothing": ["Shoes","Pants","Shirt","Underwear","Hat"],
+  "Occupations": ["Banker","Doctor","Policeman","Teacher","Engineer"],
+  "Occupations II": ["Scientist","Pilot","Lawyer","Technician","Dentist"],
+  "Weather": ["Sun","Wind","Rain","Snow","Lightning"],
+  "Instruments": ["Guitar","Drums","Violin","Piano","Trumpet"],
+  "Sports": ["Rugby","Golf","Soccer","Cricket","Tennis"],
+  "Sports II": ["Volleyball","Hockey","Basketball","Baseball ","Badminton"],
+  "Olympics": ["Athletics","Swimming","Cycling","Weightlifting","Karate"],
+  "Board Games": ["Chess","Monopoly","Clue","Ludo","Catan"],
+  "Movie Genres": ["Comedy","Romance","Action","Drama","Horror"],
+  "Music Genres": ["HipHop","Rock","Pop","Electronic","Blues"],
+  "Languages": ["English","French","Chinese","Spanish","Hindi"],
+  "Actors II": ["Gene Kelly","Tom Hanks","Will Smith","Jackie Chan","Clint Eastwood"],
+  "Actresses": ["Angelina Jolie","Meryl Streep","Lucy Liu","Mindy Kaling","Emma Watson"],
+  "Movies": ["Star Wars","The Godfather","Lord of the Rings","Toy Story","Forest Gump"],
+  "Books": ["Harry Potter","The Bible","To Kill a Mockingbird","1984","Hamlet"],
+  "Authors": ["Stephanie Myer","Jules Verne","Shakespeare","Agatha Christie","Dan Brown"],
+  "Landmarks": ["Eiffel Tower","Colosseum","Taj Mahal","Pyramids","Great Wall"],
+  "Landmarks II": ["Grand Canyon","Stonehenge","Louvre","Mt Kilimanjaro","Statue of Liberty"],
+  "Desserts": ["Chocolate","Ice Cream","Donut","Jelly","Pudding"],
+  "Colours": ["Red","Green","Blue","Pink","Black"],
+  "Cartoons": ["Simpsons","Spongebob","Pokemon","Avatar","Garfield"],
+  "Electronics": ["Computer","Phone","Satellite","Laser","Battery"],
+  "Vehicles": ["Airplane","Boat","Car","Bike","Train"],
+  "Meals": ["Pizza","Curry ","Sushi","Burger","Dumplings"],
+  "Meals II": ["Pasta","Lobster","Kebab","Popcorn","Fajitas"],
+  "Tools": ["Knife","Hammer","Torch","Ruler","Pliers"],
+  "Inventions": ["Wheel","Calendar","Lightbulb","Compass","Concrete"],
+  "Appliances": ["Toaster","Fridge","Microwave","Washing Machine","TV"],
+  "Stationery": ["Paper","Pen","Eraser","Sharpener","Scissors"],
+  "Emotions": ["Anger","Joy","Sadness","Fear","Surprise"],
+  "Food": ["Milk","Egg","Bread","Ham","Cheese"],
+  "Buildings": ["Hospital","University","Restaurant","Theatre","Supermarket"],
+  "Collections": ["Books","Coins","Cards","Stamps","Wine"],
+  "Organizations": ["Disney","Nestle","Amazon","Toyota","Microsoft"],
+  "Body Parts": ["Brain","Heart","Skull","Ear","Finger"],
+  "Body Parts II": ["Liver","Knee","Eye","Nose","Tongue"],
+  "Mythical Beasts": ["Dragon","Centaur","Troll","Unicorn","Vampire"],
+  "Mythical Beasts II": ["Werewolf","Leprechaun","Phoenix","Yeti","Mermaid"],
+  "Cartoon Characters": ["Snoopy","Mickey Mouse","Hulk","Pink Panther","Batman"],
+  "Materials": ["Plastic","Glass","Wool","Wood","Metal"],
+};
+const flatCards = Object.entries(cards).map(([k,v])=>[k, ...v]);
+
+function permutations(a) { return a.length ? a.reduce((r, v, i) => [...r, ...permutations([...a.slice(0, i), ...a.slice(i + 1)]).map(x => [v, ...x])], []) : [[]]; }
+const cords = permutations(Array(5).fill(0).map((_, i) => i)).filter((p, i, arr) => !arr.slice(0, i).some(a => a.every((b, k) => b == p.indexOf(k))));
+
+function setupGame(socket) {
+  player.cards = [flatCards[Math.random()*flatCards.length|0], flatCards[Math.random()*flatCards.length|0]];
+  while (player.cards[0][0] === player.cards[1][0]) {
+    player.cards[1] = flatCards[Math.random()*flatCards.length|0];
+  }
+  player.cord = cords[Math.random()*flatCards.length|0];
+  if (Math.random() < 0.5) {
+    player.cord.reverse();
+  }
+
+  const main = document.querySelector('main');
+  main.innerHTML = `
+<div class="interface">
+  <p>Welcome, ${player.name}! To get started, think of 5 clues that describe the connections
+    between the ${player.cards[0][0]} on the left and the ${player.cards[1][0]} on the right.</p>
+  <form>
+    <div class="group">
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137">
+        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+        <g stroke="none" fill="#ccc">
+          <rect x="6" y="28" width="92" height="19" rx="4" />
+          <rect x="6" y="49" width="92" height="19" rx="4"/>
+          <rect x="6" y="70" width="92" height="19" rx="4"/>
+          <rect x="6" y="91" width="92" height="19" rx="4"/>
+          <rect x="6" y="112" width="92" height="19" rx="4"/>
+          <rect x="138" y="28" width="92" height="19" rx="4"/>
+          <rect x="138" y="49" width="92" height="19" rx="4"/>
+          <rect x="138" y="70" width="92" height="19" rx="4"/>
+          <rect x="138" y="91" width="92" height="19" rx="4"/>
+          <rect x="138" y="112" width="92" height="19" rx="4"/>
+        </g>
+        <g opacity="0">
+        <rect x="6" y="7" width="92" height="19"/>
+        <rect x="10" y="28" width="68" height="19"/>
+        <rect x="10" y="49" width="68" height="19"/>
+        <rect x="10" y="70" width="68" height="19"/>
+        <rect x="10" y="91" width="68" height="19"/>
+        <rect x="10" y="112" width="68" height="19"/>
+        <rect x="138" y="7" width="92" height="19"/>
+        <rect x="158" y="28" width="68" height="19"/>
+        <rect x="158" y="49" width="68" height="19"/>
+        <rect x="158" y="70" width="68" height="19"/>
+        <rect x="158" y="91" width="68" height="19"/>
+        <rect x="158" y="112" width="68" height="19"/>
+        </g>
+        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle" dominant-baseline="central">
+          <text x="52" y="16.5"></text>
+          <text x="44" y="37.5"></text>
+          <text x="44" y="58.5"></text>
+          <text x="44" y="79.5"></text>
+          <text x="44" y="100.5"></text>
+          <text x="44" y="121.5"></text>
+          <text x="184" y="16.5"></text>
+          <text x="192" y="37.5"></text>
+          <text x="192" y="58.5"></text>
+          <text x="192" y="79.5"></text>
+          <text x="192" y="100.5"></text>
+          <text x="192" y="121.5"></text>
+        </g>
+        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
+        <g paint-order="stroke" stroke-opacity="0.25">
+          <circle cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
+          <circle cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
+        </g>
+      </svg>
+      <div class="fwrap">
+        <fieldset>
+          <legend>Clues</legend>
+          <input>
+          <input>
+          <input>
+          <input>
+          <input>
+        </fieldset>
+      </div>
+    </div>
+    <button type="submit">Submit</button>
+  </form>
+</div>
+<p class="loader hidden">Well done! Now wait for the other players to write finish writing their clues as well.</p>`;
+  const svg = main.querySelector('svg');
+  const boxes = svg.querySelectorAll('g[opacity="0"] rect');
+  const texts = svg.querySelectorAll('text');
+  texts.forEach((text, i) => {
+    text.textContent = i < 6 ? player.cards[0][i] : player.cards[1][i - 6];
+    const box = boxes[i];
+    if (text.getBoundingClientRect().width > box.getBoundingClientRect().width) {
+      text.setAttribute('font-size', 16 * (box.getBoundingClientRect().width) / text.getBoundingClientRect().width);
+    }
+  });
+  const circles = [...document.querySelectorAll('circle')];
+  const paths = circles.slice(0, 5).map((start, i) => ({ start, end: circles[player.cord[i]+5] }));
+  paths.forEach(p => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${p.start.cx.baseVal.value},${p.start.cy.baseVal.value}L${p.active?.x ?? p.end.cx.baseVal.value},${p.active?.y ?? p.end.cy.baseVal.value}`);
+    svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
+  });
+
+  main.querySelector('form').addEventListener('submit', e => {
+    e.preventDefault();
+    player.clues = [...main.querySelectorAll('input')].map(i => i.value).sort(() => Math.random() - 0.5);
+    player.ready = Date.now();
+    socket.send(JSON.stringify({ action: 'ready', clues: player.clues, cards: player.cards, name: player.name, ready: player.ready }));
+    main.querySelector('.interface').classList.add('hidden');
+    main.querySelector('.loader').classList.remove('hidden');
+  });
+}
+
+function loadConnection(socket, name, prev, repeat) {
+  // Ignore requests to load the same player, but send a new request if you are loading a different player
+  if (!name || !connections[name].loaded || repeat) {
+    if (name) {
+      socket.send(JSON.stringify({ action: 'load', name: name }));
+      Object.keys(connections).forEach(k => connections[k].loaded = undefined);
+      connections[name].loaded = true;
+    }
+    
+    const main = document.querySelector('main');
+    if (prev) {
+      main.innerHTML = `
+      <p>You got <span style="color:lime;font-size:1.5rem">${
+        connections[prev].guesses[player.name].score
+      }</span> points for ${prev === player.name ?
+        'other players guessing your links correctly!'
+      : `getting ${connections[prev].guesses[player.name].score/2} connections right!` }</p>
+      <p>Here were the answers for ${prev === player.name ? 'the clues you gave' : `${prev}'s clues`}:</p>
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137" style="display:block;margin:auto;max-width:calc(100vw - 4rem)">
+        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+        <g stroke="none" fill="#ccc">
+          <rect x="6" y="28" width="92" height="19" rx="4" />
+          <rect x="6" y="49" width="92" height="19" rx="4"/>
+          <rect x="6" y="70" width="92" height="19" rx="4"/>
+          <rect x="6" y="91" width="92" height="19" rx="4"/>
+          <rect x="6" y="112" width="92" height="19" rx="4"/>
+          <rect x="138" y="28" width="92" height="19" rx="4"/>
+          <rect x="138" y="49" width="92" height="19" rx="4"/>
+          <rect x="138" y="70" width="92" height="19" rx="4"/>
+          <rect x="138" y="91" width="92" height="19" rx="4"/>
+          <rect x="138" y="112" width="92" height="19" rx="4"/>
+        </g>
+        <g opacity="0">
+        <rect x="6" y="7" width="92" height="19"/>
+        <rect x="10" y="28" width="68" height="19"/>
+        <rect x="10" y="49" width="68" height="19"/>
+        <rect x="10" y="70" width="68" height="19"/>
+        <rect x="10" y="91" width="68" height="19"/>
+        <rect x="10" y="112" width="68" height="19"/>
+        <rect x="138" y="7" width="92" height="19"/>
+        <rect x="158" y="28" width="68" height="19"/>
+        <rect x="158" y="49" width="68" height="19"/>
+        <rect x="158" y="70" width="68" height="19"/>
+        <rect x="158" y="91" width="68" height="19"/>
+        <rect x="158" y="112" width="68" height="19"/>
+        </g>
+        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle" dominant-baseline="central">
+          <text x="52" y="16.5"></text>
+          <text x="44" y="37.5"></text>
+          <text x="44" y="58.5"></text>
+          <text x="44" y="79.5"></text>
+          <text x="44" y="100.5"></text>
+          <text x="44" y="121.5"></text>
+          <text x="184" y="16.5"></text>
+          <text x="192" y="37.5"></text>
+          <text x="192" y="58.5"></text>
+          <text x="192" y="79.5"></text>
+          <text x="192" y="100.5"></text>
+          <text x="192" y="121.5"></text>
+        </g>
+        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
+        <g paint-order="stroke" stroke-opacity="0.25">
+          <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
+          <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
+        </g>
+      </svg>
+      <form>
+        <button type="submit">Continue</button>
+      </form>
+      `;
+      const svg = main.querySelector('svg');
+      const boxes = svg.querySelectorAll('g[opacity="0"] rect');
+      const texts = svg.querySelectorAll('text');
+      texts.forEach((text, i) => {
+        text.textContent = i < 6 ? connections[prev].cards[0][i] : connections[prev].cards[1][i - 6];
+        const box = boxes[i];
+        if (text.getBoundingClientRect().width > box.getBoundingClientRect().width) {
+          text.setAttribute('font-size', 16 * (box.getBoundingClientRect().width) / text.getBoundingClientRect().width);
+        }
+      });
+      const circles = [...document.querySelectorAll('circle')];
+      const paths = circles.slice(0, 5).map((start, i) => ({ start, end: circles[connections[prev].cord[i]+5] }));
+      paths.forEach(p => {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M${p.start.cx.baseVal.value},${p.start.cy.baseVal.value}L${p.active?.x ?? p.end.cx.baseVal.value},${p.active?.y ?? p.end.cy.baseVal.value}`);
+        svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
+      });
+
+      main.querySelector('form').addEventListener('submit', e => {
+        e.preventDefault();
+        loadConnection(socket, name, false, true);
+      });
+    } else if (!name) {
+      document.querySelector('main').innerHTML = `<p>Game Over! These are the final scores:</p>`;
+    } else if (name === player.name) {
+      main.innerHTML = `<p>Now sit back and relax while other players use your clues to guess what connections you had.</p>
+      <p>You will get one point for every correctly guessed connection.</p>`;
+    } else {
+      main.innerHTML = `
+<div class="interface">
+  <p>Now try to work out how ${name}'s categories are connected.</p>
+  <p>You will score two points for every correct link you make.</p>
+  <form>
+    <div class="group">
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137" class="interactive">
+        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+        <g stroke="none" fill="#ccc">
+          <rect x="6" y="28" width="92" height="19" rx="4" />
+          <rect x="6" y="49" width="92" height="19" rx="4"/>
+          <rect x="6" y="70" width="92" height="19" rx="4"/>
+          <rect x="6" y="91" width="92" height="19" rx="4"/>
+          <rect x="6" y="112" width="92" height="19" rx="4"/>
+          <rect x="138" y="28" width="92" height="19" rx="4"/>
+          <rect x="138" y="49" width="92" height="19" rx="4"/>
+          <rect x="138" y="70" width="92" height="19" rx="4"/>
+          <rect x="138" y="91" width="92" height="19" rx="4"/>
+          <rect x="138" y="112" width="92" height="19" rx="4"/>
+        </g>
+        <g opacity="0">
+        <rect x="6" y="7" width="92" height="19"/>
+        <rect x="10" y="28" width="68" height="19"/>
+        <rect x="10" y="49" width="68" height="19"/>
+        <rect x="10" y="70" width="68" height="19"/>
+        <rect x="10" y="91" width="68" height="19"/>
+        <rect x="10" y="112" width="68" height="19"/>
+        <rect x="138" y="7" width="92" height="19"/>
+        <rect x="158" y="28" width="68" height="19"/>
+        <rect x="158" y="49" width="68" height="19"/>
+        <rect x="158" y="70" width="68" height="19"/>
+        <rect x="158" y="91" width="68" height="19"/>
+        <rect x="158" y="112" width="68" height="19"/>
+        </g>
+        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle" dominant-baseline="central">
+          <text x="52" y="16.5"></text>
+          <text x="44" y="37.5"></text>
+          <text x="44" y="58.5"></text>
+          <text x="44" y="79.5"></text>
+          <text x="44" y="100.5"></text>
+          <text x="44" y="121.5"></text>
+          <text x="184" y="16.5"></text>
+          <text x="192" y="37.5"></text>
+          <text x="192" y="58.5"></text>
+          <text x="192" y="79.5"></text>
+          <text x="192" y="100.5"></text>
+          <text x="192" y="121.5"></text>
+        </g>
+        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
+        <g paint-order="stroke" stroke-opacity="0.25">
+          <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
+          <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
+        </g>
+      </svg>
+      <div class="fwrap">
+        <fieldset>
+          <legend>Clues</legend>
+          ${connections[name].clues.map(clue => `<p>${clue || '&nbsp;'}</p>`).join('')}
+        </fieldset>
+      </div>
+    </div>
+    <button type="submit">Submit</button>
+  </form>
+</div>
+<p class="loader hidden">Well done! Now wait for the other players to write finish answering as well.</p>`;
+      const svg = main.querySelector('svg');
+      const boxes = svg.querySelectorAll('g[opacity="0"] rect');
+      const texts = svg.querySelectorAll('text');
+      texts.forEach((text, i) => {
+        text.textContent = i < 6 ? connections[name].cards[0][i] : connections[name].cards[1][i - 6];
+        const box = boxes[i];
+        if (text.getBoundingClientRect().width > box.getBoundingClientRect().width) {
+          text.setAttribute('font-size', 16 * (box.getBoundingClientRect().width) / text.getBoundingClientRect().width);
+        }
+      });
+      const circles = [...document.querySelectorAll('circle')];
+      const paths = [];
+      Array.prototype.spliceIndex = function(f, ...p) {
+        const i = this.findIndex(f);
+        if (i !== -1) {
+          return this.splice(i, ...p);
+        }
+        this.push(...p.slice(1));
+        return [];
+      };
+      function drawPaths() {
+        svg.querySelectorAll('path').forEach(p => p.parentNode.removeChild(p));
+        paths.forEach(p => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', `M${p.start.cx.baseVal.value},${p.start.cy.baseVal.value}L${p.active?.x ?? p.end.cx.baseVal.value},${p.active?.y ?? p.end.cy.baseVal.value}`);
+          if (p.clash) {
+            path.style.stroke = 'red';
+          }
+          svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
+        });
+      }
+
+      circles.forEach(circle => {
+        let mousemove;
+        let point = svg.createSVGPoint();
+        circle.addEventListener('mousedown', e => {
+          point.x = e.clientX;
+          point.y = e.clientY;
+          point = point.matrixTransform(svg.getScreenCTM().inverse());
+          paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+          paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+          paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+          drawPaths();
+          circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
+          mousemove = e => {
+            point.x = e.clientX;
+            point.y = e.clientY;
+            point = point.matrixTransform(svg.getScreenCTM().inverse());
+            paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+            drawPaths();
+          };
+          svg.addEventListener('mousemove', mousemove);
+          const mouseup = e => {
+            const end = e.target.closest?.('circle');
+            if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
+              paths.filter(p => p.start === end || p.end === end).forEach(p => p.clash = true);
+              paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+              paths.spliceIndex(p => p.active, 1, { start: circle, end });
+            } else {
+              paths.spliceIndex(p => p.active, 1);
+            }
+            drawPaths();
+            circles.forEach(c => c.style.pointerEvents = '');
+            svg.removeEventListener('mousemove', mousemove);
+            document.removeEventListener('mouseup', mouseup);
+            window.removeEventListener('mouseleave', mouseup);
+          };
+          document.addEventListener('mouseup', mouseup);
+          window.addEventListener('mouseleave', mouseup);
+        });
+        circle.addEventListener('mouseenter', e => {
+          paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+          drawPaths();
+        });
+        circle.addEventListener('mouseleave', e => {
+          paths.forEach(p => delete p.clash);
+          drawPaths();
+        });
+
+        let touchmove;
+        circle.addEventListener('touchstart', e => {
+          point.x = e.touches[0].clientX;
+          point.y = e.touches[0].clientY;
+          point = point.matrixTransform(svg.getScreenCTM().inverse());
+          paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+          paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+          paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+          drawPaths();
+          circles.filter(c => c.cx.baseVal.value === circle.cx.baseVal.value).forEach(c => c.style.pointerEvents = 'none');
+          touchmove = e => {
+            e.preventDefault();
+            point.x = e.touches[0].clientX;
+            point.y = e.touches[0].clientY;
+            point = point.matrixTransform(svg.getScreenCTM().inverse());
+            paths.spliceIndex(p => p.active, 1, { start: circle, active: point });
+            drawPaths();
+          };
+          svg.addEventListener('touchmove', touchmove);
+          const touchend = e => {
+            const end = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('circle');
+            if (end && end.cx.baseVal.value !== circle.cx.baseVal.value) {
+              paths.filter(p => p.start === end || p.end === end).forEach(p => p.clash = true);
+              paths.filter(p => p.clash).forEach(p => paths.spliceIndex(p => p.clash, 1));
+              paths.spliceIndex(p => p.active, 1, { start: circle, end });
+            } else {
+              paths.spliceIndex(p => p.active, 1);
+            }
+            drawPaths();
+            circles.forEach(c => c.style.pointerEvents = '');
+            svg.removeEventListener('touchmove', touchmove);
+            document.removeEventListener('touchend', touchend);
+            window.removeEventListener('touchcancel', touchend);
+          };
+          document.addEventListener('touchend', touchend);
+          window.addEventListener('touchcancel', touchend);
+        });
+      });
+
+      document.addEventListener('touchmove', e => {
+        e.preventDefault();
+        paths.forEach(p => delete p.clash);
+        const circle = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('circle');
+        if (circle) {
+          paths.filter(p => p.start === circle || p.end === circle).forEach(p => p.clash = true);
+        }
+        drawPaths();
+      });
+
+      main.querySelector('form').addEventListener('submit', e => {
+        e.preventDefault();
+        paths.forEach(path => {
+          if (path.start.getAttribute('data-index').startsWith('B')) {
+            [path.start, path.end] = [path.end, path.start];
+          }
+        });
+        const guess = paths.sort(
+          (a, b) => (a.start.getAttribute('data-index') > b.start.getAttribute('data-index')) - (a.start.getAttribute('data-index') < b.start.getAttribute('data-index'))
+        ).map(p => +p.end.getAttribute('data-index')[1]);
+        socket.send(JSON.stringify({ action: 'guess', guess, player: name, name: player.name }));
+        main.querySelector('.interface').classList.add('hidden');
+        main.querySelector('.loader').classList.remove('hidden');
+      });
+    }
+  }
+}
+  </script>
+</body>
+</html>
