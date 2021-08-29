@@ -347,6 +347,9 @@ document.getElementById('room-form').addEventListener('submit', async e => {
             </tr>`
           )).join('')
         }
+        ${Object.keys(connections).length < 2 ?
+          `<tr><td colspan="3">You are the only person in the room at the moment.<br>Ask some friends to join you in room ${player.room} !</td></tr>`
+        : ''}
         </tbody>
       </table>
     </div>`;
