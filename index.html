@@ -264,7 +264,7 @@ document.getElementById('room-form').addEventListener('submit', async e => {
         connections[data.name].clues = data.clues;
         connections[data.name].cards = data.cards;
         if (Object.keys(connections).length > 1 && Object.values(connections).every(c => c.ready)) {
-          const first = Object.values(connections).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => a.ready - b.ready)[0];
+          const first = Object.values(connections).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => b.ready - a.ready)[0];
           loadConnection(socket, first.name);
         }
       },
@@ -296,12 +296,12 @@ document.getElementById('room-form').addEventListener('submit', async e => {
         if (Object.values(connections).every(c => c.guesses)) {
           loadConnection(socket, false, data.name);
         } else {
-          const next = Object.values(connections).filter(c => !c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => a.ready - b.ready)[0];
+          const next = Object.values(connections).filter(c => !c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => b.ready - a.ready)[0];
           loadConnection(socket, next.name, data.name);
         }
       }
     }[data.action] || (() => {}))();
-    const completedPlayers = Object.values(connections).filter(c => c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => a.ready - b.ready);
+    const completedPlayers = Object.values(connections).filter(c => c.guesses).sort((a, b) => (a.name > b.name) - (a.name < b.name)).sort((a, b) => b.ready - a.ready);
     document.querySelector('aside').innerHTML = `<p>Room Code: ${player.room}</p>
     <table>
       <thead>
