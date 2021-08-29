@@ -158,6 +158,10 @@ main fieldset p {
   border-bottom: 1px solid #ccc;
   text-align: start;
 }
+main .error {
+  margin: 2rem auto -2rem;
+  color: firebrick;
+}
 
 aside {
   display: flex;
@@ -480,6 +484,7 @@ function setupGame(socket) {
         </fieldset>
       </div>
     </div>
+    <p class="error hidden">Please enter 5 clues before submitting.</p>
     <button type="submit">Submit</button>
   </form>
 </div>
@@ -504,12 +509,17 @@ function setupGame(socket) {
 
   main.querySelector('form').addEventListener('submit', e => {
     e.preventDefault();
+    if ([...main.querySelectorAll('input')].some(i => !i.value.trim())) {
+      main.querySelector('.error').classList.remove('hidden');
+      return;
+    }
     player.clues = [...main.querySelectorAll('input')].map(i => i.value).sort(() => Math.random() - 0.5);
     player.ready = Date.now();
     socket.send(JSON.stringify({ action: 'ready', clues: player.clues, cards: player.cards, name: player.name, ready: player.ready }));
     main.querySelector('.interface').classList.add('hidden');
     main.querySelector('.loader').classList.remove('hidden');
   });
+  main.querySelectorAll('input').forEach(i => i.addEventListener('input', () => main.querySelector('.error').classList.add('hidden')));
 }
 
 function loadConnection(socket, name, prev, repeat) {
@@ -687,6 +697,7 @@ function loadConnection(socket, name, prev, repeat) {
         </fieldset>
       </div>
     </div>
+    <p class="error hidden">Please draw 5 links before submitting.</p>
     <button type="submit">Submit</button>
   </form>
 </div>
@@ -721,6 +732,7 @@ function loadConnection(socket, name, prev, repeat) {
           }
           svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
         });
+        main.querySelector('.error').classList.add('hidden');
       }
 
       circles.forEach(circle => {
@@ -821,6 +833,10 @@ function loadConnection(socket, name, prev, repeat) {
 
       main.querySelector('form').addEventListener('submit', e => {
         e.preventDefault();
+        if (paths.length < 5) {
+          main.querySelector('.error').classList.remove('hidden');
+          return;
+        }
         paths.forEach(path => {
           if (path.start.getAttribute('data-index').startsWith('B')) {
             [path.start, path.end] = [path.end, path.start];
