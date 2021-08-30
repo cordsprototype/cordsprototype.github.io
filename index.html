@@ -460,8 +460,8 @@ function setupGame(socket) {
     between the ${player.cards[0][0]} on the left and the ${player.cards[1][0]} on the right.</p>
   <form>
     <div class="group">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137">
-        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
+        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
         <g stroke="none" fill="#ccc">
           <rect x="6" y="28" width="92" height="19" rx="4" />
           <rect x="6" y="49" width="92" height="19" rx="4"/>
@@ -584,8 +584,8 @@ function loadConnection(socket, name, prev, repeat) {
     : `getting ${connections[prev].guesses[player.name].score/2} connections right!` }</p>
     <p>Here were the answers for ${prev === player.name ? 'the clues you gave' : `${prev}'s clues`}:</p>
     <div class="group">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137">
-        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
+        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
         <g stroke="none" fill="#ccc">
           <rect x="6" y="28" width="92" height="19" rx="4" />
           <rect x="6" y="49" width="92" height="19" rx="4"/>
@@ -673,8 +673,8 @@ function loadConnection(socket, name, prev, repeat) {
       Object.entries(connections[prev].guesses).filter(([k]) => k !== prev).forEach(([k, v]) => {
         document.querySelector('.answers').innerHTML += `<div data-answer="${k}">
           <p style="margin:0 1rem -0.5rem;text-align:start">${k}</p>
-          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137">
-            <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
+            <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
             <g stroke="none" fill="#ccc">
               <rect x="6" y="28" width="92" height="19" rx="4" />
               <rect x="6" y="49" width="92" height="19" rx="4"/>
@@ -763,8 +763,8 @@ function loadConnection(socket, name, prev, repeat) {
     <p>You will get one point for every correctly guessed connection.</p>
     <p>Here are the clues you gave:</p>
     <div class="group" style="margin-bottom:1rem">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137" class="interactive">
-        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135" class="interactive">
+        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
         <g stroke="none" fill="#ccc">
           <rect x="6" y="28" width="92" height="19" rx="4" />
           <rect x="6" y="49" width="92" height="19" rx="4"/>
@@ -850,8 +850,8 @@ function loadConnection(socket, name, prev, repeat) {
   <p>You will score two points for every correct link you make.</p>
   <form>
     <div class="group">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137" class="interactive">
-        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135" class="interactive">
+        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
         <g stroke="none" fill="#ccc">
           <rect x="6" y="28" width="92" height="19" rx="4" />
           <rect x="6" y="49" width="92" height="19" rx="4"/>
