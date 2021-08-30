@@ -440,6 +440,63 @@ const cards = {
 };
 const flatCards = Object.entries(cards).map(([k,v])=>[k, ...v]);
 
+const svgCard = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
+  <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
+  <g stroke="none" fill="#ccc">
+    <rect x="6" y="28" width="92" height="19" rx="4" />
+    <rect x="6" y="49" width="92" height="19" rx="4"/>
+    <rect x="6" y="70" width="92" height="19" rx="4"/>
+    <rect x="6" y="91" width="92" height="19" rx="4"/>
+    <rect x="6" y="112" width="92" height="19" rx="4"/>
+    <rect x="138" y="28" width="92" height="19" rx="4"/>
+    <rect x="138" y="49" width="92" height="19" rx="4"/>
+    <rect x="138" y="70" width="92" height="19" rx="4"/>
+    <rect x="138" y="91" width="92" height="19" rx="4"/>
+    <rect x="138" y="112" width="92" height="19" rx="4"/>
+  </g>
+  <g opacity="0">
+  <rect x="6" y="7" width="92" height="19"/>
+  <rect x="10" y="28" width="68" height="19"/>
+  <rect x="10" y="49" width="68" height="19"/>
+  <rect x="10" y="70" width="68" height="19"/>
+  <rect x="10" y="91" width="68" height="19"/>
+  <rect x="10" y="112" width="68" height="19"/>
+  <rect x="138" y="7" width="92" height="19"/>
+  <rect x="158" y="28" width="68" height="19"/>
+  <rect x="158" y="49" width="68" height="19"/>
+  <rect x="158" y="70" width="68" height="19"/>
+  <rect x="158" y="91" width="68" height="19"/>
+  <rect x="158" y="112" width="68" height="19"/>
+  </g>
+  <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
+    <text x="52" y="16.5" dominant-baseline="central" font-weight="bold"></text>
+    <text x="44" y="37.5" dominant-baseline="central"></text>
+    <text x="44" y="58.5" dominant-baseline="central"></text>
+    <text x="44" y="79.5" dominant-baseline="central"></text>
+    <text x="44" y="100.5" dominant-baseline="central"></text>
+    <text x="44" y="121.5" dominant-baseline="central"></text>
+    <text x="184" y="16.5" dominant-baseline="central" font-weight="bold"></text>
+    <text x="192" y="37.5" dominant-baseline="central"></text>
+    <text x="192" y="58.5" dominant-baseline="central"></text>
+    <text x="192" y="79.5" dominant-baseline="central"></text>
+    <text x="192" y="100.5" dominant-baseline="central"></text>
+    <text x="192" y="121.5" dominant-baseline="central"></text>
+  </g>
+  <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
+  <g paint-order="stroke" stroke-opacity="0.25">
+    <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
+    <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
+    <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+    <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
+    <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
+    <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
+    <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
+    <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+    <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
+    <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
+  </g>
+</svg>`;
+
 function permutations(a) { return a.length ? a.reduce((r, v, i) => [...r, ...permutations([...a.slice(0, i), ...a.slice(i + 1)]).map(x => [v, ...x])], []) : [[]]; }
 const cords = permutations(Array(5).fill(0).map((_, i) => i)).filter((p, i, arr) => !arr.slice(0, i).some(a => a.every((b, k) => b == p.indexOf(k))));
 
@@ -460,62 +517,7 @@ function setupGame(socket) {
     between the ${player.cards[0][0]} on the left and the ${player.cards[1][0]} on the right.</p>
   <form>
     <div class="group">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
-        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
-        <g stroke="none" fill="#ccc">
-          <rect x="6" y="28" width="92" height="19" rx="4" />
-          <rect x="6" y="49" width="92" height="19" rx="4"/>
-          <rect x="6" y="70" width="92" height="19" rx="4"/>
-          <rect x="6" y="91" width="92" height="19" rx="4"/>
-          <rect x="6" y="112" width="92" height="19" rx="4"/>
-          <rect x="138" y="28" width="92" height="19" rx="4"/>
-          <rect x="138" y="49" width="92" height="19" rx="4"/>
-          <rect x="138" y="70" width="92" height="19" rx="4"/>
-          <rect x="138" y="91" width="92" height="19" rx="4"/>
-          <rect x="138" y="112" width="92" height="19" rx="4"/>
-        </g>
-        <g opacity="0">
-        <rect x="6" y="7" width="92" height="19"/>
-        <rect x="10" y="28" width="68" height="19"/>
-        <rect x="10" y="49" width="68" height="19"/>
-        <rect x="10" y="70" width="68" height="19"/>
-        <rect x="10" y="91" width="68" height="19"/>
-        <rect x="10" y="112" width="68" height="19"/>
-        <rect x="138" y="7" width="92" height="19"/>
-        <rect x="158" y="28" width="68" height="19"/>
-        <rect x="158" y="49" width="68" height="19"/>
-        <rect x="158" y="70" width="68" height="19"/>
-        <rect x="158" y="91" width="68" height="19"/>
-        <rect x="158" y="112" width="68" height="19"/>
-        </g>
-        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
-          <text x="52" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="44" y="37.5" dominant-baseline="central"></text>
-          <text x="44" y="58.5" dominant-baseline="central"></text>
-          <text x="44" y="79.5" dominant-baseline="central"></text>
-          <text x="44" y="100.5" dominant-baseline="central"></text>
-          <text x="44" y="121.5" dominant-baseline="central"></text>
-          <text x="184" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="192" y="37.5" dominant-baseline="central"></text>
-          <text x="192" y="58.5" dominant-baseline="central"></text>
-          <text x="192" y="79.5" dominant-baseline="central"></text>
-          <text x="192" y="100.5" dominant-baseline="central"></text>
-          <text x="192" y="121.5" dominant-baseline="central"></text>
-        </g>
-        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
-        <g paint-order="stroke" stroke-opacity="0.25">
-          <circle cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
-          <circle cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
-        </g>
-      </svg>
+      ${svgCard}
       <div class="fwrap">
         <fieldset>
           <legend>Clues</legend>
@@ -584,62 +586,7 @@ function loadConnection(socket, name, prev, repeat) {
     : `getting ${connections[prev].guesses[player.name].score/2} connections right!` }</p>
     <p>Here were the answers for ${prev === player.name ? 'the clues you gave' : `${prev}'s clues`}:</p>
     <div class="group">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
-        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
-        <g stroke="none" fill="#ccc">
-          <rect x="6" y="28" width="92" height="19" rx="4" />
-          <rect x="6" y="49" width="92" height="19" rx="4"/>
-          <rect x="6" y="70" width="92" height="19" rx="4"/>
-          <rect x="6" y="91" width="92" height="19" rx="4"/>
-          <rect x="6" y="112" width="92" height="19" rx="4"/>
-          <rect x="138" y="28" width="92" height="19" rx="4"/>
-          <rect x="138" y="49" width="92" height="19" rx="4"/>
-          <rect x="138" y="70" width="92" height="19" rx="4"/>
-          <rect x="138" y="91" width="92" height="19" rx="4"/>
-          <rect x="138" y="112" width="92" height="19" rx="4"/>
-        </g>
-        <g opacity="0">
-        <rect x="6" y="7" width="92" height="19"/>
-        <rect x="10" y="28" width="68" height="19"/>
-        <rect x="10" y="49" width="68" height="19"/>
-        <rect x="10" y="70" width="68" height="19"/>
-        <rect x="10" y="91" width="68" height="19"/>
-        <rect x="10" y="112" width="68" height="19"/>
-        <rect x="138" y="7" width="92" height="19"/>
-        <rect x="158" y="28" width="68" height="19"/>
-        <rect x="158" y="49" width="68" height="19"/>
-        <rect x="158" y="70" width="68" height="19"/>
-        <rect x="158" y="91" width="68" height="19"/>
-        <rect x="158" y="112" width="68" height="19"/>
-        </g>
-        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
-          <text x="52" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="44" y="37.5" dominant-baseline="central"></text>
-          <text x="44" y="58.5" dominant-baseline="central"></text>
-          <text x="44" y="79.5" dominant-baseline="central"></text>
-          <text x="44" y="100.5" dominant-baseline="central"></text>
-          <text x="44" y="121.5" dominant-baseline="central"></text>
-          <text x="184" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="192" y="37.5" dominant-baseline="central"></text>
-          <text x="192" y="58.5" dominant-baseline="central"></text>
-          <text x="192" y="79.5" dominant-baseline="central"></text>
-          <text x="192" y="100.5" dominant-baseline="central"></text>
-          <text x="192" y="121.5" dominant-baseline="central"></text>
-        </g>
-        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
-        <g paint-order="stroke" stroke-opacity="0.25">
-          <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
-          <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
-        </g>
-      </svg>
+      ${svgCard}
       <div class="fwrap">
         <fieldset>
           <legend>Clues</legend>
@@ -673,62 +620,7 @@ function loadConnection(socket, name, prev, repeat) {
       Object.entries(connections[prev].guesses).filter(([k]) => k !== prev).forEach(([k, v]) => {
         document.querySelector('.answers').innerHTML += `<div data-answer="${k}">
           <p style="margin:0 1rem -0.5rem;text-align:start">${k}</p>
-          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135">
-            <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
-            <g stroke="none" fill="#ccc">
-              <rect x="6" y="28" width="92" height="19" rx="4" />
-              <rect x="6" y="49" width="92" height="19" rx="4"/>
-              <rect x="6" y="70" width="92" height="19" rx="4"/>
-              <rect x="6" y="91" width="92" height="19" rx="4"/>
-              <rect x="6" y="112" width="92" height="19" rx="4"/>
-              <rect x="138" y="28" width="92" height="19" rx="4"/>
-              <rect x="138" y="49" width="92" height="19" rx="4"/>
-              <rect x="138" y="70" width="92" height="19" rx="4"/>
-              <rect x="138" y="91" width="92" height="19" rx="4"/>
-              <rect x="138" y="112" width="92" height="19" rx="4"/>
-            </g>
-            <g opacity="0">
-            <rect x="6" y="7" width="92" height="19"/>
-            <rect x="10" y="28" width="68" height="19"/>
-            <rect x="10" y="49" width="68" height="19"/>
-            <rect x="10" y="70" width="68" height="19"/>
-            <rect x="10" y="91" width="68" height="19"/>
-            <rect x="10" y="112" width="68" height="19"/>
-            <rect x="138" y="7" width="92" height="19"/>
-            <rect x="158" y="28" width="68" height="19"/>
-            <rect x="158" y="49" width="68" height="19"/>
-            <rect x="158" y="70" width="68" height="19"/>
-            <rect x="158" y="91" width="68" height="19"/>
-            <rect x="158" y="112" width="68" height="19"/>
-            </g>
-            <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
-              <text x="52" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-              <text x="44" y="37.5" dominant-baseline="central"></text>
-              <text x="44" y="58.5" dominant-baseline="central"></text>
-              <text x="44" y="79.5" dominant-baseline="central"></text>
-              <text x="44" y="100.5" dominant-baseline="central"></text>
-              <text x="44" y="121.5" dominant-baseline="central"></text>
-              <text x="184" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-              <text x="192" y="37.5" dominant-baseline="central"></text>
-              <text x="192" y="58.5" dominant-baseline="central"></text>
-              <text x="192" y="79.5" dominant-baseline="central"></text>
-              <text x="192" y="100.5" dominant-baseline="central"></text>
-              <text x="192" y="121.5" dominant-baseline="central"></text>
-            </g>
-            <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
-            <g paint-order="stroke" stroke-opacity="0.25">
-              <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
-              <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
-              <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-              <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
-              <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
-              <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
-              <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
-              <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-              <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
-              <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
-            </g>
-          </svg>
+          ${svgCard}
           <p style="color:lime;margin:-0.5rem 0 0;font-size:2rem">${v.score}</p>
         </div>`;
         const svg = main.querySelector(`[data-answer="${k}"] svg`);
@@ -763,62 +655,7 @@ function loadConnection(socket, name, prev, repeat) {
     <p>You will get one point for every correctly guessed connection.</p>
     <p>Here are the clues you gave:</p>
     <div class="group" style="margin-bottom:1rem">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135" class="interactive">
-        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
-        <g stroke="none" fill="#ccc">
-          <rect x="6" y="28" width="92" height="19" rx="4" />
-          <rect x="6" y="49" width="92" height="19" rx="4"/>
-          <rect x="6" y="70" width="92" height="19" rx="4"/>
-          <rect x="6" y="91" width="92" height="19" rx="4"/>
-          <rect x="6" y="112" width="92" height="19" rx="4"/>
-          <rect x="138" y="28" width="92" height="19" rx="4"/>
-          <rect x="138" y="49" width="92" height="19" rx="4"/>
-          <rect x="138" y="70" width="92" height="19" rx="4"/>
-          <rect x="138" y="91" width="92" height="19" rx="4"/>
-          <rect x="138" y="112" width="92" height="19" rx="4"/>
-        </g>
-        <g opacity="0">
-        <rect x="6" y="7" width="92" height="19"/>
-        <rect x="10" y="28" width="68" height="19"/>
-        <rect x="10" y="49" width="68" height="19"/>
-        <rect x="10" y="70" width="68" height="19"/>
-        <rect x="10" y="91" width="68" height="19"/>
-        <rect x="10" y="112" width="68" height="19"/>
-        <rect x="138" y="7" width="92" height="19"/>
-        <rect x="158" y="28" width="68" height="19"/>
-        <rect x="158" y="49" width="68" height="19"/>
-        <rect x="158" y="70" width="68" height="19"/>
-        <rect x="158" y="91" width="68" height="19"/>
-        <rect x="158" y="112" width="68" height="19"/>
-        </g>
-        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
-          <text x="52" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="44" y="37.5" dominant-baseline="central"></text>
-          <text x="44" y="58.5" dominant-baseline="central"></text>
-          <text x="44" y="79.5" dominant-baseline="central"></text>
-          <text x="44" y="100.5" dominant-baseline="central"></text>
-          <text x="44" y="121.5" dominant-baseline="central"></text>
-          <text x="184" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="192" y="37.5" dominant-baseline="central"></text>
-          <text x="192" y="58.5" dominant-baseline="central"></text>
-          <text x="192" y="79.5" dominant-baseline="central"></text>
-          <text x="192" y="100.5" dominant-baseline="central"></text>
-          <text x="192" y="121.5" dominant-baseline="central"></text>
-        </g>
-        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
-        <g paint-order="stroke" stroke-opacity="0.25">
-          <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
-          <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
-        </g>
-      </svg>
+      ${svgCard}
       <div class="fwrap">
         <fieldset>
           <legend>Clues</legend>
@@ -850,62 +687,7 @@ function loadConnection(socket, name, prev, repeat) {
   <p>You will score two points for every correct link you make.</p>
   <form>
     <div class="group">
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 2.5 237 135" class="interactive">
-        <rect x="0.5" y="3" width="236" height="134" rx="4" fill="white" stroke="black" stroke-width="1"/>
-        <g stroke="none" fill="#ccc">
-          <rect x="6" y="28" width="92" height="19" rx="4" />
-          <rect x="6" y="49" width="92" height="19" rx="4"/>
-          <rect x="6" y="70" width="92" height="19" rx="4"/>
-          <rect x="6" y="91" width="92" height="19" rx="4"/>
-          <rect x="6" y="112" width="92" height="19" rx="4"/>
-          <rect x="138" y="28" width="92" height="19" rx="4"/>
-          <rect x="138" y="49" width="92" height="19" rx="4"/>
-          <rect x="138" y="70" width="92" height="19" rx="4"/>
-          <rect x="138" y="91" width="92" height="19" rx="4"/>
-          <rect x="138" y="112" width="92" height="19" rx="4"/>
-        </g>
-        <g opacity="0">
-        <rect x="6" y="7" width="92" height="19"/>
-        <rect x="10" y="28" width="68" height="19"/>
-        <rect x="10" y="49" width="68" height="19"/>
-        <rect x="10" y="70" width="68" height="19"/>
-        <rect x="10" y="91" width="68" height="19"/>
-        <rect x="10" y="112" width="68" height="19"/>
-        <rect x="138" y="7" width="92" height="19"/>
-        <rect x="158" y="28" width="68" height="19"/>
-        <rect x="158" y="49" width="68" height="19"/>
-        <rect x="158" y="70" width="68" height="19"/>
-        <rect x="158" y="91" width="68" height="19"/>
-        <rect x="158" y="112" width="68" height="19"/>
-        </g>
-        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
-          <text x="52" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="44" y="37.5" dominant-baseline="central"></text>
-          <text x="44" y="58.5" dominant-baseline="central"></text>
-          <text x="44" y="79.5" dominant-baseline="central"></text>
-          <text x="44" y="100.5" dominant-baseline="central"></text>
-          <text x="44" y="121.5" dominant-baseline="central"></text>
-          <text x="184" y="16.5" dominant-baseline="central" font-weight="bold"></text>
-          <text x="192" y="37.5" dominant-baseline="central"></text>
-          <text x="192" y="58.5" dominant-baseline="central"></text>
-          <text x="192" y="79.5" dominant-baseline="central"></text>
-          <text x="192" y="100.5" dominant-baseline="central"></text>
-          <text x="192" y="121.5" dominant-baseline="central"></text>
-        </g>
-        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
-        <g paint-order="stroke" stroke-opacity="0.25">
-          <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
-          <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
-          <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
-          <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
-          <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
-          <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
-        </g>
-      </svg>
+      ${svgCard}
       <div class="fwrap">
         <fieldset>
           <legend>Clues</legend>
@@ -919,6 +701,7 @@ function loadConnection(socket, name, prev, repeat) {
 </div>
 <p class="loader hidden">Well done! Now wait for the other players to finish answering as well.</p>`;
       const svg = main.querySelector('svg');
+      svg.classList.add('interactive');
       const boxes = svg.querySelectorAll('g[opacity="0"] rect');
       const texts = svg.querySelectorAll('text');
       texts.forEach((text, i) => {
