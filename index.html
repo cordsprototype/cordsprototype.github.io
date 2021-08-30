@@ -363,6 +363,10 @@ document.getElementById('room-form').addEventListener('submit', async e => {
         </tbody>
       </table>
     </div>`;
+    if (completedPlayers.length === Object.keys(connections).length && !document.querySelector('svg') && completedPlayers.length > 1) {
+      document.querySelector('aside').innerHTML += `<button class="refresh">Play again</button>`;
+      document.querySelector('.refresh').addEventListener('click', () => window.location = '');
+    }
   });
   socket.addEventListener('open', () => {
     socket.send(JSON.stringify({ action: 'connect', name: player.name, uuid }));
@@ -649,6 +653,8 @@ function loadConnection(socket, name, prev, repeat) {
       });
     } else if (!name) {
       document.querySelector('main').innerHTML = `<h1>Game Over!</h1><p>These are the final scores:</p>`;
+      document.querySelector('aside').innerHTML += `<button class="refresh">Play again</button>`;
+      document.querySelector('.refresh').addEventListener('click', () => window.location = '');
     } else if (name === player.name) {
       main.innerHTML = `
     <p>Now sit back and relax while the other players use your clues to guess what connections you had.</p>
