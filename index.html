@@ -205,6 +205,12 @@ td:first-child, td:last-child {
   overflow: auto;
   max-width: calc(100vw - 3rem);
 }
+h1 {
+  text-align: center;
+  margin: 0;
+  font: bold 3rem sans-serif;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -567,13 +573,14 @@ function loadConnection(socket, name, prev, repeat) {
     const main = document.querySelector('main');
     if (prev) {
       main.innerHTML = `
-      <p>You got <span style="color:lime;font-size:1.5rem">${
-        connections[prev].guesses[player.name].score
-      }</span> points for ${prev === player.name ?
-        'other players guessing your links correctly!'
-      : `getting ${connections[prev].guesses[player.name].score/2} connections right!` }</p>
-      <p>Here were the answers for ${prev === player.name ? 'the clues you gave' : `${prev}'s clues`}:</p>
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137" style="display:block;margin:auto;max-width:calc(100vw - 4rem)">
+    <p>You got <span style="color:lime;font-size:1.5rem">${
+      connections[prev].guesses[player.name].score
+    }</span> points for ${prev === player.name ?
+      'other players guessing your links correctly!'
+    : `getting ${connections[prev].guesses[player.name].score/2} connections right!` }</p>
+    <p>Here were the answers for ${prev === player.name ? 'the clues you gave' : `${prev}'s clues`}:</p>
+    <div class="group">
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137">
         <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
         <g stroke="none" fill="#ccc">
           <rect x="6" y="28" width="92" height="19" rx="4" />
@@ -629,12 +636,18 @@ function loadConnection(socket, name, prev, repeat) {
           <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
         </g>
       </svg>
-      <p style="margin-top:2rem">And here's what everyone answered:</p>
-      <div class="answers"></div>
-      <form>
-        <button type="submit">Continue</button>
-      </form>
-      `;
+      <div class="fwrap">
+        <fieldset>
+          <legend>Clues</legend>
+          ${connections[prev].clues.map(clue => `<p>${clue || '&nbsp;'}</p>`).join('')}
+        </fieldset>
+      </div>
+    </div>
+    <p style="margin-top:2rem">And here's what everyone answered:</p>
+    <div class="answers"></div>
+    <form>
+      <button type="submit">Continue</button>
+    </form>`;
       const svg = main.querySelector('svg');
       const boxes = svg.querySelectorAll('g[opacity="0"] rect');
       const texts = svg.querySelectorAll('text');
@@ -712,7 +725,7 @@ function loadConnection(socket, name, prev, repeat) {
               <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
             </g>
           </svg>
-          <p style="color:lime;margin-top:-0.5rem;font-size:2rem">${v.score}</p>
+          <p style="color:lime;margin:-0.5rem 0 0;font-size:2rem">${v.score}</p>
         </div>`;
         const svg = main.querySelector(`[data-answer="${k}"] svg`);
         const boxes = svg.querySelectorAll('g[opacity="0"] rect');
@@ -725,10 +738,11 @@ function loadConnection(socket, name, prev, repeat) {
           }
         });
         const circles = [...svg.querySelectorAll('circle')];
-        const paths = circles.slice(0, 5).map((start, i) => ({ start, end: circles[v.guess[i]+5] }));
-        paths.forEach(p => {
+        const paths = circles.slice(0, 5).map((start, i) => ({ start, end: circles[v.guess[i]+5], correct: v.guess[i] === connections[prev].cord[i] }));
+        paths.sort((a, b) => a.correct - b.correct).forEach(p => {
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           path.setAttribute('d', `M${p.start.cx.baseVal.value},${p.start.cy.baseVal.value}L${p.active?.x ?? p.end.cx.baseVal.value},${p.active?.y ?? p.end.cy.baseVal.value}`);
+          path.setAttribute('stroke', p.correct ? 'limegreen' : 'firebrick');
           svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
         });
       });
@@ -738,10 +752,93 @@ function loadConnection(socket, name, prev, repeat) {
         loadConnection(socket, name, false, true);
       });
     } else if (!name) {
-      document.querySelector('main').innerHTML = `<p>Game Over! These are the final scores:</p>`;
+      document.querySelector('main').innerHTML = `<h1>Game Over!</h1><p>These are the final scores:</p>`;
     } else if (name === player.name) {
-      main.innerHTML = `<p>Now sit back and relax while other players use your clues to guess what connections you had.</p>
-      <p>You will get one point for every correctly guessed connection.</p>`;
+      main.innerHTML = `
+    <p>Now sit back and relax while the other players use your clues to guess what connections you had.</p>
+    <p>You will get one point for every correctly guessed connection.</p>
+    <p>Here are the clues you gave:</p>
+    <div class="group" style="margin-bottom:1rem">
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 237 137" class="interactive">
+        <rect x="0.5" y="0.5" width="236" height="136" rx="4" fill="white" stroke="black" stroke-width="1"/>
+        <g stroke="none" fill="#ccc">
+          <rect x="6" y="28" width="92" height="19" rx="4" />
+          <rect x="6" y="49" width="92" height="19" rx="4"/>
+          <rect x="6" y="70" width="92" height="19" rx="4"/>
+          <rect x="6" y="91" width="92" height="19" rx="4"/>
+          <rect x="6" y="112" width="92" height="19" rx="4"/>
+          <rect x="138" y="28" width="92" height="19" rx="4"/>
+          <rect x="138" y="49" width="92" height="19" rx="4"/>
+          <rect x="138" y="70" width="92" height="19" rx="4"/>
+          <rect x="138" y="91" width="92" height="19" rx="4"/>
+          <rect x="138" y="112" width="92" height="19" rx="4"/>
+        </g>
+        <g opacity="0">
+        <rect x="6" y="7" width="92" height="19"/>
+        <rect x="10" y="28" width="68" height="19"/>
+        <rect x="10" y="49" width="68" height="19"/>
+        <rect x="10" y="70" width="68" height="19"/>
+        <rect x="10" y="91" width="68" height="19"/>
+        <rect x="10" y="112" width="68" height="19"/>
+        <rect x="138" y="7" width="92" height="19"/>
+        <rect x="158" y="28" width="68" height="19"/>
+        <rect x="158" y="49" width="68" height="19"/>
+        <rect x="158" y="70" width="68" height="19"/>
+        <rect x="158" y="91" width="68" height="19"/>
+        <rect x="158" y="112" width="68" height="19"/>
+        </g>
+        <g font-size="16" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle" dominant-baseline="central">
+          <text x="52" y="16.5"></text>
+          <text x="44" y="37.5"></text>
+          <text x="44" y="58.5"></text>
+          <text x="44" y="79.5"></text>
+          <text x="44" y="100.5"></text>
+          <text x="44" y="121.5"></text>
+          <text x="184" y="16.5"></text>
+          <text x="192" y="37.5"></text>
+          <text x="192" y="58.5"></text>
+          <text x="192" y="79.5"></text>
+          <text x="192" y="100.5"></text>
+          <text x="192" y="121.5"></text>
+        </g>
+        <g stroke="black" stroke-linecap="round" stroke-width="4" fill="none"/>
+        <g paint-order="stroke" stroke-opacity="0.25">
+          <circle data-index="A0" cx="88" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle data-index="A1" cx="88" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle data-index="A2" cx="88" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle data-index="A3" cx="88" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle data-index="A4" cx="88" cy="121.5" r="8" fill="blue" stroke="blue"/>
+          <circle data-index="B0" cx="148" cy="37.5" r="8" fill="red" stroke="red"/>
+          <circle data-index="B1" cx="148" cy="58.5" r="8" fill="orange" stroke="orange"/>
+          <circle data-index="B2" cx="148" cy="79.5" r="8" fill="yellow" stroke="yellow"/>
+          <circle data-index="B3" cx="148" cy="100.5" r="8" fill="lime" stroke="lime"/>
+          <circle data-index="B4" cx="148" cy="121.5" r="8" fill="blue" stroke="blue"/>
+        </g>
+      </svg>
+      <div class="fwrap">
+        <fieldset>
+          <legend>Clues</legend>
+          ${player.clues.map(clue => `<p>${clue || '&nbsp;'}</p>`).join('')}
+        </fieldset>
+      </div>
+    </div>`;
+      const svg = main.querySelector(`svg`);
+      const boxes = svg.querySelectorAll('g[opacity="0"] rect');
+      const texts = svg.querySelectorAll('text');
+      texts.forEach((text, i) => {
+        text.textContent = i < 6 ? player.cards[0][i] : player.cards[1][i - 6];
+        const box = boxes[i];
+        if (text.getBoundingClientRect().width > box.getBoundingClientRect().width) {
+          text.setAttribute('font-size', 16 * (box.getBoundingClientRect().width) / text.getBoundingClientRect().width);
+        }
+      });
+      const circles = [...svg.querySelectorAll('circle')];
+      const paths = circles.slice(0, 5).map((start, i) => ({ start, end: circles[player.cord[i]+5] }));
+      paths.forEach(p => {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M${p.start.cx.baseVal.value},${p.start.cy.baseVal.value}L${p.active?.x ?? p.end.cx.baseVal.value},${p.active?.y ?? p.end.cy.baseVal.value}`);
+        svg.querySelector('g[stroke=black]').appendChild(path, svg.querySelector('g'));
+      });
     } else {
       main.innerHTML = `
 <div class="interface">
