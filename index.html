@@ -284,7 +284,11 @@ document.getElementById('room-form').addEventListener('submit', async e => {
         }
       },
       leave() {
-        delete connections[data.name];
+        if (Object.values(connections).every(c => c.guesses)) {
+          connections[data.name].disconnected = true;
+        } else {
+          delete connections[data.name];
+        }
       },
       ready() {
         connections[data.name].ready = data.ready;
@@ -341,13 +345,13 @@ document.getElementById('room-form').addEventListener('submit', async e => {
           Object.values(connections).map(c => (
             `<tr>
               <td>${c.name}${c.name === player.name ? ' (Me)' : ''}</td>
-              <td>${c.ready ? (
+              <td>${c.disconnected ? 'Disconnected' : (c.ready ? (
                 Object.values(connections).some(cc => cc.loaded) ? (
                   (c.loaded && completedPlayers.length !== Object.keys(connections).length) ? 'Waiting' : (
                     (c.guessed?.length > completedPlayers.length) || (completedPlayers.length === Object.keys(connections).length) ? 'Finished' : 'Answering'
                   )
                 ) : 'Ready'
-              ) : 'Writing clues'}</td>
+              ) : 'Writing clues')}</td>
               ${completedPlayers.map(cc => `<td>${cc.guesses[c.name].score}</td>`).join('')}
               <td>${c.score || 0}</td>
             </tr>`
